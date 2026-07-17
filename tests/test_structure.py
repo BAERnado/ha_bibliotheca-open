@@ -15,7 +15,13 @@ class StructureTest(unittest.TestCase):
 
         self.assertTrue(manifest["config_flow"])
         self.assertEqual("cloud_polling", manifest["iot_class"])
-        self.assertEqual(["bibliotheca-open-client==0.1.0"], manifest["requirements"])
+        self.assertEqual(
+            [
+                "bibliotheca-open-client@git+https://github.com/BAERnado/"
+                "bibliotheca-open-client.git@d81cf1d"
+            ],
+            manifest["requirements"],
+        )
         for language in ("de", "en"):
             translation = json.loads(
                 (COMPONENT / "translations" / f"{language}.json").read_text()

@@ -21,8 +21,10 @@ retain the previous entity history according to the user's Recorder settings.
 
 ## Installation
 
-The integration currently requires `bibliotheca-open-client==0.1.0` from PyPI.
-Publish that package before installing this integration in Home Assistant.
+Until the first PyPI release, the integration installs the client directly
+from the pinned Git commit `d81cf1d`. This requires outbound access from Home
+Assistant to GitHub during dependency installation. Replace the Git requirement
+with an exact PyPI version after publishing the package.
 
 For development, copy `custom_components/bibliotheca_open` into the
 `custom_components` directory of a Home Assistant development configuration,

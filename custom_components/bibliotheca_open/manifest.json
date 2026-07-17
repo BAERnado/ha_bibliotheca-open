@@ -7,6 +7,8 @@
   "integration_type": "hub",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/BAERnado/ha_bibliotheca-open/issues",
-  "requirements": ["bibliotheca-open-client==0.1.0"],
+  "requirements": [
+    "bibliotheca-open-client@git+https://github.com/BAERnado/bibliotheca-open-client.git@d81cf1d"
+  ],
   "version": "0.1.0"
 }
