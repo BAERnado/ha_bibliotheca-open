@@ -1,0 +1,32 @@
+# Local Home Assistant runtime and credentials
+config/
+.storage/
+secrets.yaml
+home-assistant.log*
+home-assistant_v2.db*
+
+# Local environment files
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+
+# Python caches, test output, and build artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Editors and operating systems
+.vscode/
+.idea/
+*.code-workspace
+.DS_Store
+Thumbs.db
