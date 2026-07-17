@@ -1,0 +1,11 @@
+renew_loan:
+  fields:
+    config_entry_id:
+      required: true
+      selector:
+        config_entry:
+          integration: bibliotheca_open
+    copy_id:
+      required: true
+      selector:
+        text:

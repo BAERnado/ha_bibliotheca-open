@@ -1,0 +1,47 @@
+{
+  "title": "Bibliotheca Open",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add library account",
+        "data": {
+          "account_name": "Account name",
+          "base_url": "Library URL",
+          "username": "Library card number",
+          "password": "Password"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Update library credentials",
+        "data": {
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Unable to connect to the library",
+      "invalid_auth": "The library rejected the credentials",
+      "invalid_url": "Enter the complete HTTP(S) root URL of the library",
+      "missing_fields": "Complete all fields"
+    },
+    "abort": {
+      "already_configured": "This library account is already configured"
+    }
+  },
+  "services": {
+    "renew_loan": {
+      "name": "Renew loan",
+      "description": "Immediately renew one currently renewable loan.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Account",
+          "description": "Library account containing the loan."
+        },
+        "copy_id": {
+          "name": "Copy ID",
+          "description": "Copy ID exposed by the loan sensor."
+        }
+      }
+    }
+  }
+}

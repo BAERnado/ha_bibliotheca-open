@@ -1,12 +1,45 @@
 # Bibliotheca Open for Home Assistant
 
-Home Assistant custom integration for libraries using
+HACS-installable Home Assistant custom integration for library accounts using
 [bibliotheca-open.de](https://bibliotheca-open.de/).
 
-The integration is currently an initial skeleton and does not provide entities
-or account access yet.
+## Features
 
-## Development installation
+- UI configuration with one config entry per library account
+- multiple people, accounts, and library installations
+- hourly polling with automatic login after an expired session
+- one date sensor per currently borrowed medium
+- loan title, author, media group, copy ID, overdue and renewal information
+- account sensors for active, overdue, and renewable loans
+- monetary account balance with fee and deposit attributes
+- one due-date calendar per account
+- explicit `bibliotheca_open.renew_loan` action
 
-Copy `custom_components/bibliotheca_open` into the `custom_components`
-directory of a Home Assistant configuration and restart Home Assistant.
+Returned media are removed from Home Assistant's current state. The integration
+does not maintain a separate lending history; Home Assistant's Recorder can
+retain the previous entity history according to the user's Recorder settings.
+
+## Installation
+
+The integration currently requires `bibliotheca-open-client==0.1.0` from PyPI.
+Publish that package before installing this integration in Home Assistant.
+
+For development, copy `custom_components/bibliotheca_open` into the
+`custom_components` directory of a Home Assistant development configuration,
+restart Home Assistant, then add **Bibliotheca Open** through
+**Settings → Devices & services**.
+
+Enter:
+
+- a freely chosen account name;
+- the installation root URL, for example
+  `https://kaltenkirchen.bibliotheca-open.de`;
+- library card number and password.
+
+## Renewal action
+
+`bibliotheca_open.renew_loan` changes the library account immediately. It needs
+the Home Assistant config-entry ID and the `copy_id` attribute of a loan sensor.
+The integration refreshes all account entities after the request. Automatic
+renewal is intentionally left to a Home Assistant automation so users can add
+their own timing, notification, and safety conditions.
