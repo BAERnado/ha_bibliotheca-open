@@ -13,11 +13,15 @@ HACS-installable Home Assistant custom integration for library accounts using
 - account sensors for active, overdue, and renewable loans
 - monetary account balance with fee and deposit attributes
 - one due-date calendar per account
+- one Recorder-backed loan activity entity with `borrowed`, `returned`, and
+  `renewed` events
 - explicit `bibliotheca_open.renew_loan` action
 
 Returned media are removed from Home Assistant's current state. The integration
 does not maintain a separate lending history; Home Assistant's Recorder can
 retain the previous entity history according to the user's Recorder settings.
+The return time is when an hourly update first notices that a copy disappeared,
+not necessarily the exact time it was handed back at the library.
 
 ## Installation
 

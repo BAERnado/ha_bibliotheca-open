@@ -3,7 +3,7 @@
 from datetime import timedelta
 
 DOMAIN = "bibliotheca_open"
-PLATFORMS = ["calendar", "sensor"]
+PLATFORMS = ["calendar", "event", "sensor"]
 DEFAULT_UPDATE_INTERVAL = timedelta(hours=1)
 
 CONF_ACCOUNT_NAME = "account_name"

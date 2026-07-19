@@ -15,6 +15,7 @@ class StructureTest(unittest.TestCase):
 
         self.assertTrue(manifest["config_flow"])
         self.assertEqual("cloud_polling", manifest["iot_class"])
+        self.assertTrue((COMPONENT / "event.py").is_file())
         self.assertEqual(
             [
                 "bibliotheca-open-client@git+https://github.com/BAERnado/"
