@@ -15,6 +15,8 @@ HACS-installable Home Assistant custom integration for library accounts using
 - one due-date calendar per account
 - one Recorder-backed loan activity entity with `borrowed`, `returned`, and
   `renewed` events
+- one `due_soon` event when a loan enters the final three days before its due
+  date, including copy ID and current renewal status
 - explicit `bibliotheca_open.renew_loan` action
 
 Returned media are removed from Home Assistant's current state. The integration
@@ -22,6 +24,47 @@ does not maintain a separate lending history; Home Assistant's Recorder can
 retain the previous entity history according to the user's Recorder settings.
 The return time is when an hourly update first notices that a copy disappeared,
 not necessarily the exact time it was handed back at the library.
+
+New sensor IDs are suggested as
+`sensor.bibliotheca_open_<account>_<medium>_<copy_id>`. Existing entity IDs are
+not renamed automatically by Home Assistant. Automations should select loan
+sensors by their `copy_id` attribute rather than relying on generated names.
+
+All loan sensors can be selected in a template independently of their names:
+
+```jinja
+{% for entity_id in integration_entities('bibliotheca_open') %}
+  {% if entity_id.startswith('sensor.')
+        and state_attr(entity_id, 'copy_id') is not none %}
+    {{ entity_id }}: {{ state_attr(entity_id, 'renewable') }}
+  {% endif %}
+{% endfor %}
+```
+
+Use the due-date calendar with an offset for ordinary reminders. For structured
+automation, trigger on any state change of the account's loan-activity event
+entity and select `due_soon`:
+
+```yaml
+triggers:
+  - trigger: state
+    entity_id: event.bibliotheca_open_my_account_loan_activity
+conditions:
+  - condition: template
+    value_template: "{{ trigger.to_state.attributes.event_type == 'due_soon' }}"
+actions:
+  - action: persistent_notification.create
+    data:
+      title: "Library loan due soon"
+      message: >-
+        {{ trigger.to_state.attributes.title }} is due on
+        {{ trigger.to_state.attributes.due_date }}.
+mode: queued
+```
+
+The event attributes also expose `config_entry_id`, `copy_id`, `renewable`, and
+`renewal_reason`, so an automation can add its own conditions before calling
+`renew_loan` without parsing entity names or calendar descriptions.
 
 ## Installation
 

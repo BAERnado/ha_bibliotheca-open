@@ -15,6 +15,7 @@ class StructureTest(unittest.TestCase):
 
         self.assertTrue(manifest["config_flow"])
         self.assertEqual("cloud_polling", manifest["iot_class"])
+        self.assertEqual("0.2.0", manifest["version"])
         self.assertTrue((COMPONENT / "event.py").is_file())
         self.assertEqual(
             [

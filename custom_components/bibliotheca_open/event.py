@@ -3,17 +3,21 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import date
+from typing import Any
 
 from homeassistant.components.event import EventEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.storage import Store
+from homeassistant.util import slugify
 
 from .activity import EVENT_TYPES, activity_events
 from .const import DOMAIN
 from .coordinator import BibliothecaCoordinator
 from .entity import BibliothecaEntity
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -34,12 +38,15 @@ class LoanActivityEvent(BibliothecaEntity, EventEntity):
     def __init__(self, coordinator: BibliothecaCoordinator) -> None:
         super().__init__(coordinator)
         self._attr_unique_id = f"{coordinator.entry.entry_id}_loan_activity"
-        self._store = Store[dict[str, dict[str, str]]](
+        self._attr_suggested_object_id = (
+            f"bibliotheca_open_{slugify(coordinator.entry.title)}_loan_activity"
+        )
+        self._store = Store[dict[str, dict[str, Any]]](
             coordinator.hass,
             1,
             f"{DOMAIN}.{coordinator.entry.entry_id}.active_loans",
         )
-        self._known: dict[str, dict[str, str]] | None = None
+        self._known: dict[str, dict[str, Any]] | None = None
         self._process_lock = asyncio.Lock()
 
     async def async_added_to_hass(self) -> None:
@@ -55,12 +62,14 @@ class LoanActivityEvent(BibliothecaEntity, EventEntity):
 
         self.hass.async_create_task(self._async_process_update())
 
-    def _current(self) -> dict[str, dict[str, str]]:
+    def _current(self) -> dict[str, dict[str, Any]]:
         return {
             loan.copy_id: {
                 "copy_id": loan.copy_id,
                 "title": loan.title,
                 "due_date": loan.due_date.isoformat(),
+                "renewable": loan.renewal.renewable if loan.renewal else None,
+                "renewal_reason": loan.renewal.reason if loan.renewal else None,
             }
             for loan in self.coordinator.data.loans
         }
@@ -69,11 +78,15 @@ class LoanActivityEvent(BibliothecaEntity, EventEntity):
         async with self._process_lock:
             current = self._current()
             if self._known is None:
-                self._known = current
-                await self._store.async_save(current)
-                return
+                # Establish a lifecycle baseline but still report loans already
+                # inside the due-soon window.
+                previous = current
+            else:
+                previous = self._known
 
-            for event_type, attributes in activity_events(self._known, current):
+            events, current = activity_events(previous, current, date.today())
+            for event_type, attributes in events:
+                attributes["config_entry_id"] = self.coordinator.entry.entry_id
                 self._trigger_event(event_type, attributes)
 
             self._known = current
