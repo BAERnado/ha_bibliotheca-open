@@ -15,12 +15,16 @@ from homeassistant.core import callback
 from .const import (
     CONF_ACCOUNT_NAME,
     CONF_BASE_URL,
+    CONF_DUE_SOON_DAYS,
     CONF_PASSWORD,
     CONF_UPDATE_INTERVAL,
     CONF_USERNAME,
+    DEFAULT_DUE_SOON_DAYS,
     DEFAULT_UPDATE_INTERVAL_MINUTES,
     DOMAIN,
+    MAX_DUE_SOON_DAYS,
     MAX_UPDATE_INTERVAL_MINUTES,
+    MIN_DUE_SOON_DAYS,
     MIN_UPDATE_INTERVAL_MINUTES,
 )
 from .url import normalize_base_url
@@ -154,7 +158,16 @@ class BibliothecaOptionsFlow(OptionsFlowWithReload):
                         min=MIN_UPDATE_INTERVAL_MINUTES,
                         max=MAX_UPDATE_INTERVAL_MINUTES,
                     ),
-                )
+                ),
+                vol.Required(
+                    CONF_DUE_SOON_DAYS,
+                    default=self.config_entry.options.get(
+                        CONF_DUE_SOON_DAYS, DEFAULT_DUE_SOON_DAYS
+                    ),
+                ): vol.All(
+                    int,
+                    vol.Range(min=MIN_DUE_SOON_DAYS, max=MAX_DUE_SOON_DAYS),
+                ),
             }
         )
         return self.async_show_form(step_id="init", data_schema=schema)

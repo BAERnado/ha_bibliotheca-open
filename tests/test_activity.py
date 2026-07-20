@@ -58,15 +58,22 @@ class ActivityTest(unittest.TestCase):
         self.assertEqual("2026-07-02", renewed["previous_due_date"])
         self.assertEqual("2026-08-02", renewed["due_date"])
 
-    def test_due_soon_is_emitted_once_per_due_date(self) -> None:
+    def test_due_soon_groups_loans_and_is_emitted_once_per_due_date(self) -> None:
         current = {
-            "copy": {
-                "copy_id": "copy",
-                "title": "Due",
+            "renewable": {
+                "copy_id": "renewable",
+                "title": "Renewable",
                 "due_date": "2026-07-22",
                 "renewable": True,
                 "renewal_reason": None,
-            }
+            },
+            "blocked": {
+                "copy_id": "blocked",
+                "title": "Blocked",
+                "due_date": "2026-07-22",
+                "renewable": False,
+                "renewal_reason": "Reserved",
+            },
         }
 
         events, stored = ACTIVITY.activity_events(
@@ -75,8 +82,30 @@ class ActivityTest(unittest.TestCase):
         repeated, _ = ACTIVITY.activity_events(stored, current, date(2026, 7, 20))
 
         due_event = next(attributes for kind, attributes in events if kind == "due_soon")
-        self.assertTrue(due_event["renewable"])
+        self.assertEqual("2026-07-22", due_event["due_date"])
+        self.assertEqual(
+            [{"copy_id": "renewable", "title": "Renewable"}],
+            due_event["renewable_loans"],
+        )
+        self.assertEqual("Reserved", due_event["nonrenewable_loans"][0]["reason"])
         self.assertFalse(any(kind == "due_soon" for kind, _ in repeated))
+
+    def test_due_soon_lead_time_can_be_zero(self) -> None:
+        current = {
+            "copy": {
+                "copy_id": "copy",
+                "title": "Due today",
+                "due_date": "2026-07-20",
+                "renewable": True,
+                "renewal_reason": None,
+            }
+        }
+
+        events, _ = ACTIVITY.activity_events(
+            current, current, date(2026, 7, 20), due_soon_days=0
+        )
+
+        self.assertEqual(["due_soon"], [kind for kind, _ in events])
 
 
 if __name__ == "__main__":

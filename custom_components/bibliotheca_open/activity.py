@@ -53,24 +53,26 @@ def activity_events(
             )
 
     latest_due = today + timedelta(days=due_soon_days)
+    due_groups: dict[str, dict[str, list[dict[str, Any]]]] = {}
     for copy_id, loan in current.items():
         due_date = date.fromisoformat(loan["due_date"])
         previous_marker = previous.get(copy_id, {}).get("due_soon_for")
         if today <= due_date <= latest_due and previous_marker != loan["due_date"]:
-            events.append(
-                (
-                    EVENT_DUE_SOON,
-                    {
-                        "copy_id": copy_id,
-                        "title": loan["title"],
-                        "due_date": loan["due_date"],
-                        "renewable": loan["renewable"],
-                        "renewal_reason": loan["renewal_reason"],
-                    },
-                )
+            group = due_groups.setdefault(
+                loan["due_date"],
+                {"renewable_loans": [], "nonrenewable_loans": []},
             )
+            item = {"copy_id": copy_id, "title": loan["title"]}
+            if loan["renewable"]:
+                group["renewable_loans"].append(item)
+            else:
+                item["reason"] = loan["renewal_reason"]
+                group["nonrenewable_loans"].append(item)
             loan["due_soon_for"] = loan["due_date"]
         elif previous_marker == loan["due_date"]:
             loan["due_soon_for"] = previous_marker
+
+    for due_date, group in sorted(due_groups.items()):
+        events.append((EVENT_DUE_SOON, {"due_date": due_date, **group}))
 
     return events, current

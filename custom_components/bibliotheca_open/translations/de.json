@@ -33,10 +33,12 @@
       "init": {
         "title": "Abrufeinstellungen des Kontos",
         "data": {
-          "update_interval": "Aktualisierungsintervall in Minuten"
+          "update_interval": "Aktualisierungsintervall in Minuten",
+          "due_soon_days": "Vorlauf für bald fällige Medien in Tagen"
         },
         "data_description": {
-          "update_interval": "Für Konten derselben Bibliothek unterschiedliche Intervalle verwenden, um Abrufe zu verteilen. Erlaubt sind 15 bis 1440 Minuten."
+          "update_interval": "Für Konten derselben Bibliothek unterschiedliche Intervalle verwenden, um Abrufe zu verteilen. Erlaubt sind 15 bis 1440 Minuten.",
+          "due_soon_days": "Das Ereignis due_soon wird so viele Tage vor dem Rückgabedatum ausgelöst. Erlaubt sind 0 bis 14 Tage."
         }
       }
     }

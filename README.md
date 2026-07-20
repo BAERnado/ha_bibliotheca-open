@@ -7,7 +7,7 @@ HACS-installable Home Assistant custom integration for library accounts using
 
 - UI configuration with one config entry per library account
 - multiple people, accounts, and library installations
-- configurable polling per account, defaulting to 60 minutes
+- configurable polling and due-soon lead time per account
 - one date sensor per currently borrowed medium
 - aggregate loan and account-balance sensors
 - one due-date calendar per account
@@ -32,7 +32,7 @@ Each configured account needs:
   `kaltenkirchen.bibliotheca-open.de`, or just `kaltenkirchen`;
 - library card number and password.
 
-## Update behavior and polling interval
+## Update behavior and account options
 
 The account defaults to an update every 60 minutes and is refreshed immediately
 after a renewal action. If its session expired, the integration logs in again
@@ -43,6 +43,9 @@ Configure**. Values from 15 to 1440 minutes are accepted. With several accounts
 at the same library, choose slightly different intervals, for example 57, 63,
 and 71 minutes. This spreads later polls; the initial setup check still runs
 immediately for each account.
+
+The same options dialog controls when `due_soon` is emitted. Its lead time
+defaults to 3 days and accepts values from 0 (on the due date) through 14 days.
 
 Returned media disappear from the current Home Assistant state. The integration
 does not maintain a second lending-history database; lifecycle events are kept
@@ -113,19 +116,22 @@ triggers handle every loan, including several media due on the same day.
 
 Each account has one **Loan activity** event entity. Its state is the timestamp
 of the latest event. `event_type` identifies the event, and the remaining
-attributes describe the affected loan.
+attributes describe the affected loan or group of loans.
 
 | Event type | When emitted | Attributes in addition to `config_entry_id` |
 | --- | --- | --- |
 | `borrowed` | A new copy appears | `copy_id`, `title`, `due_date`, `renewable`, `renewal_reason` |
 | `returned` | A previously active copy disappears | `copy_id`, `title`, `previous_due_date` |
 | `renewed` | The due date changes | `copy_id`, `title`, `previous_due_date`, `due_date` |
-| `due_soon` | A copy enters the final three days before its due date | `copy_id`, `title`, `due_date`, `renewable`, `renewal_reason` |
+| `due_soon` | One or more copies enter the configured lead-time window | `due_date`, `renewable_loans`, `nonrenewable_loans` |
 
-`due_soon` is emitted once per due date. After a successful renewal it can be
-emitted again when the new date enters the three-day window. The stored activity
-snapshot survives Home Assistant restarts. The first snapshot does not create
-artificial `borrowed` events, but it does report loans already due soon.
+Each item in `renewable_loans` contains `copy_id` and `title`. Items in
+`nonrenewable_loans` additionally contain the server's `reason`. All loans in
+one event share its `due_date`. The event is emitted once per loan and due date;
+after a successful renewal that loan can be included again when its new date
+enters the configured window. The stored activity snapshot survives Home
+Assistant restarts. The first snapshot does not create artificial `borrowed`
+events, but it does report loans already due soon.
 
 ## Action: renew a loan
 
@@ -198,86 +204,49 @@ For unattended renewal, add conditions appropriate to your household. In
 particular, inspect the loan's `renewable` state or use the structured
 `due_soon` event before invoking a mutating action.
 
-## Automation: renew everything due tomorrow and report the result
+## Automation: renew due-soon loans and report the result
 
-The following account-specific automation runs one day before a calendar due
-date. It collects every loan of that account due on the same date, renews those
-currently marked renewable, and sends one summary after all renewal calls
-succeed. Replace the calendar entity and config-entry ID.
-
-`mode: single` is intentional: when several all-day events start together, the
-first run handles every loan for that date while duplicate triggers are ignored.
+Set the account's due-soon lead time to 1 day for the requested "tomorrow"
+behavior and replace the event entity ID below. The event already supplies all
+loans due on that date, separated by current renewability, so the automation
+does not need to scan integration entities.
 
 ```yaml
 alias: "Library: renew loans due tomorrow"
 triggers:
-  - trigger: calendar.event_started
-    target:
-      entity_id: calendar.my_library_due_dates
-    options:
-      offset:
-        days: 1
-      offset_type: before
+  - trigger: state
+    entity_id: event.my_library_loan_activity
+conditions:
+  - condition: template
+    value_template: "{{ trigger.to_state.attributes.event_type == 'due_soon' }}"
 variables:
-  account_config_entry_id: "HOME_ASSISTANT_CONFIG_ENTRY_ID"
-  target_due_date: "{{ (trigger.calendar_event.start|string)[:10] }}"
-  renewable_copy_ids: >-
-    {% set ns = namespace(items=[]) %}
-    {% for entity_id in integration_entities('bibliotheca_open') %}
-      {% if entity_id.startswith('sensor.')
-            and state_attr(entity_id, 'config_entry_id') == account_config_entry_id
-            and states(entity_id) == target_due_date
-            and state_attr(entity_id, 'renewable') is true %}
-        {% set ns.items = ns.items + [state_attr(entity_id, 'copy_id')] %}
-      {% endif %}
-    {% endfor %}
-    {{ ns.items }}
-  renewed_titles: >-
-    {% set ns = namespace(items=[]) %}
-    {% for entity_id in integration_entities('bibliotheca_open') %}
-      {% if entity_id.startswith('sensor.')
-            and state_attr(entity_id, 'config_entry_id') == account_config_entry_id
-            and states(entity_id) == target_due_date
-            and state_attr(entity_id, 'renewable') is true %}
-        {% set ns.items = ns.items + [state_attr(entity_id, 'friendly_name')] %}
-      {% endif %}
-    {% endfor %}
-    {{ ns.items }}
-  return_titles: >-
-    {% set ns = namespace(items=[]) %}
-    {% for entity_id in integration_entities('bibliotheca_open') %}
-      {% if entity_id.startswith('sensor.')
-            and state_attr(entity_id, 'config_entry_id') == account_config_entry_id
-            and states(entity_id) == target_due_date
-            and state_attr(entity_id, 'renewable') is false %}
-        {% set reason = state_attr(entity_id, 'renewal_reason') or 'no reason supplied' %}
-        {% set item = state_attr(entity_id, 'friendly_name') ~ ': ' ~ reason %}
-        {% set ns.items = ns.items + [item] %}
-      {% endif %}
-    {% endfor %}
-    {{ ns.items }}
+  account_config_entry_id: "{{ trigger.to_state.attributes.config_entry_id }}"
+  renewable_loans: "{{ trigger.to_state.attributes.renewable_loans }}"
+  nonrenewable_loans: "{{ trigger.to_state.attributes.nonrenewable_loans }}"
 actions:
   - repeat:
-      for_each: "{{ renewable_copy_ids }}"
+      for_each: "{{ renewable_loans }}"
       sequence:
         - action: bibliotheca_open.renew_loan
           data:
             config_entry_id: "{{ account_config_entry_id }}"
-            copy_id: "{{ repeat.item }}"
+            copy_id: "{{ repeat.item.copy_id }}"
   - action: notify.persistent_notification
     data:
       title: "Library renewal result"
       message: >-
         Renewed:
-        {% if renewed_titles %}
-        - {{ renewed_titles | join('\n- ') }}
+        {% if renewable_loans %}
+        {% for loan in renewable_loans %}- {{ loan.title }}
+        {% endfor %}
         {% else %}
         - none
         {% endif %}
 
         Not renewed; check or return:
-        {% if return_titles %}
-        - {{ return_titles | join('\n- ') }}
+        {% if nonrenewable_loans %}
+        {% for loan in nonrenewable_loans %}- {{ loan.title }}: {{ loan.reason or 'no reason supplied' }}
+        {% endfor %}
         {% else %}
         - none
         {% endif %}

@@ -33,10 +33,12 @@
       "init": {
         "title": "Account update settings",
         "data": {
-          "update_interval": "Update interval in minutes"
+          "update_interval": "Update interval in minutes",
+          "due_soon_days": "Due-soon lead time in days"
         },
         "data_description": {
-          "update_interval": "Use different intervals for accounts at the same library to spread their requests. Allowed range: 15 to 1440 minutes."
+          "update_interval": "Use different intervals for accounts at the same library to spread their requests. Allowed range: 15 to 1440 minutes.",
+          "due_soon_days": "The due_soon event is emitted this many days before the due date. Allowed range: 0 to 14 days."
         }
       }
     }

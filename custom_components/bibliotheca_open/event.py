@@ -13,7 +13,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.storage import Store
 
 from .activity import EVENT_TYPES, activity_events
-from .const import DOMAIN
+from .const import CONF_DUE_SOON_DAYS, DEFAULT_DUE_SOON_DAYS, DOMAIN
 from .coordinator import BibliothecaCoordinator
 from .entity import BibliothecaEntity
 
@@ -80,7 +80,14 @@ class LoanActivityEvent(BibliothecaEntity, EventEntity):
             else:
                 previous = self._known
 
-            events, current = activity_events(previous, current, date.today())
+            events, current = activity_events(
+                previous,
+                current,
+                date.today(),
+                self.coordinator.entry.options.get(
+                    CONF_DUE_SOON_DAYS, DEFAULT_DUE_SOON_DAYS
+                ),
+            )
             for event_type, attributes in events:
                 attributes["config_entry_id"] = self.coordinator.entry.entry_id
                 self._trigger_event(event_type, attributes)
