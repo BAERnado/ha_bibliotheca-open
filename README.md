@@ -27,8 +27,9 @@ and restart Home Assistant. Then add **Bibliotheca Open** through
 Each configured account needs:
 
 - a freely chosen account name;
-- the installation root URL, for example
-  `https://kaltenkirchen.bibliotheca-open.de`;
+- the installation root URL or short subdomain, for example
+  `https://kaltenkirchen.bibliotheca-open.de`,
+  `kaltenkirchen.bibliotheca-open.de`, or just `kaltenkirchen`;
 - library card number and password.
 
 ## Update behavior

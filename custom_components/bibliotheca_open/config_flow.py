@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from hashlib import sha256
 from typing import Any
-from urllib.parse import urlsplit
 
 from bibliotheca_open_client import BibliothecaClient
 import voluptuous as vol
@@ -19,14 +18,7 @@ from .const import (
     CONF_USERNAME,
     DOMAIN,
 )
-
-
-def _normalized_url(value: str) -> str:
-    value = value.strip().rstrip("/")
-    parsed = urlsplit(value)
-    if parsed.scheme not in {"http", "https"} or not parsed.hostname:
-        raise vol.Invalid("absolute HTTP(S) URL required")
-    return value
+from .url import normalize_base_url
 
 
 class BibliothecaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -46,8 +38,8 @@ class BibliothecaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if not account_name or not username or not user_input[CONF_PASSWORD]:
                 errors["base"] = "missing_fields"
             try:
-                base_url = _normalized_url(user_input[CONF_BASE_URL])
-            except vol.Invalid:
+                base_url = normalize_base_url(user_input[CONF_BASE_URL])
+            except ValueError:
                 errors[CONF_BASE_URL] = "invalid_url"
             if not errors:
                 client = BibliothecaClient(base_url)

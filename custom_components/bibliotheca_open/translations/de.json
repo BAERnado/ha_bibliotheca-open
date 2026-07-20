@@ -6,7 +6,7 @@
         "title": "Bibliothekskonto hinzufügen",
         "data": {
           "account_name": "Kontoname",
-          "base_url": "Bibliotheks-URL",
+          "base_url": "Bibliotheks-URL oder Subdomain",
           "username": "Ausweisnummer",
           "password": "Passwort"
         }
@@ -21,7 +21,7 @@
     "error": {
       "cannot_connect": "Die Bibliothek ist nicht erreichbar",
       "invalid_auth": "Die Bibliothek hat die Zugangsdaten abgelehnt",
-      "invalid_url": "Bitte die vollständige HTTP(S)-Basis-URL der Bibliothek eingeben",
+      "invalid_url": "Bitte eine Bibliotheks-Subdomain oder vollständige HTTP(S)-Basis-URL eingeben",
       "missing_fields": "Bitte alle Felder ausfüllen"
     },
     "abort": {
