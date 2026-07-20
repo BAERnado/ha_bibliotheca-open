@@ -11,7 +11,6 @@ from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, Sen
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
-from homeassistant.util import slugify
 
 from .coordinator import AccountData, BibliothecaCoordinator
 from .entity import BibliothecaEntity
@@ -76,9 +75,6 @@ class CountSensor(BibliothecaEntity, SensorEntity):
         super().__init__(coordinator)
         self.description = description
         self._attr_unique_id = f"{coordinator.entry.entry_id}_{description.key}"
-        self._attr_suggested_object_id = (
-            f"bibliotheca_open_{slugify(coordinator.entry.title)}_{description.key}"
-        )
         self._attr_name = description.name
 
     @property
@@ -96,9 +92,6 @@ class BalanceSensor(BibliothecaEntity, SensorEntity):
     def __init__(self, coordinator: BibliothecaCoordinator) -> None:
         super().__init__(coordinator)
         self._attr_unique_id = f"{coordinator.entry.entry_id}_balance"
-        self._attr_suggested_object_id = (
-            f"bibliotheca_open_{slugify(coordinator.entry.title)}_balance"
-        )
 
     @property
     def available(self) -> bool:
@@ -134,11 +127,6 @@ class LoanSensor(BibliothecaEntity, SensorEntity):
         super().__init__(coordinator)
         self.copy_id = copy_id
         self._attr_unique_id = f"{coordinator.entry.entry_id}_loan_{copy_id}"
-        loan = self.loan
-        title = slugify(loan.title)[:80].rstrip("_") if loan else "loan"
-        self._attr_suggested_object_id = (
-            f"bibliotheca_open_{slugify(coordinator.entry.title)}_{title}_{copy_id}"
-        )
 
     @property
     def loan(self) -> Loan | None:

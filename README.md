@@ -25,10 +25,10 @@ retain the previous entity history according to the user's Recorder settings.
 The return time is when an hourly update first notices that a copy disappeared,
 not necessarily the exact time it was handed back at the library.
 
-New sensor IDs are suggested as
-`sensor.bibliotheca_open_<account>_<medium>_<copy_id>`. Existing entity IDs are
-not renamed automatically by Home Assistant. Automations should select loan
-sensors by their `copy_id` attribute rather than relying on generated names.
+Home Assistant derives entity IDs from the account device, entity name, and
+optionally its area. The integration deliberately does not force its domain
+into entity IDs. Existing IDs are not renamed automatically. Automations should
+select loan sensors by their `copy_id` attribute rather than generated names.
 
 All loan sensors can be selected in a template independently of their names:
 
@@ -48,7 +48,7 @@ entity and select `due_soon`:
 ```yaml
 triggers:
   - trigger: state
-    entity_id: event.bibliotheca_open_my_account_loan_activity
+    entity_id: event.my_account_loan_activity
 conditions:
   - condition: template
     value_template: "{{ trigger.to_state.attributes.event_type == 'due_soon' }}"

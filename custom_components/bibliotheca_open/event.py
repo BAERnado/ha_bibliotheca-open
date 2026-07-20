@@ -11,7 +11,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.storage import Store
-from homeassistant.util import slugify
 
 from .activity import EVENT_TYPES, activity_events
 from .const import DOMAIN
@@ -38,9 +37,6 @@ class LoanActivityEvent(BibliothecaEntity, EventEntity):
     def __init__(self, coordinator: BibliothecaCoordinator) -> None:
         super().__init__(coordinator)
         self._attr_unique_id = f"{coordinator.entry.entry_id}_loan_activity"
-        self._attr_suggested_object_id = (
-            f"bibliotheca_open_{slugify(coordinator.entry.title)}_loan_activity"
-        )
         self._store = Store[dict[str, dict[str, Any]]](
             coordinator.hass,
             1,
