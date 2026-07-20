@@ -10,5 +10,5 @@
   "requirements": [
     "bibliotheca-open-client@git+https://github.com/BAERnado/bibliotheca-open-client.git@d81cf1d"
   ],
-  "version": "0.2.1"
+  "version": "0.2.2"
 }
