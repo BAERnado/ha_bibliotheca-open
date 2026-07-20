@@ -151,6 +151,7 @@ class LoanSensor(BibliothecaEntity, SensorEntity):
             return {}
         renewal = loan.renewal
         return {
+            "config_entry_id": self.coordinator.entry.entry_id,
             "copy_id": loan.copy_id,
             "author": loan.author,
             "media_group": loan.media_group,

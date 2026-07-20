@@ -15,7 +15,7 @@ class StructureTest(unittest.TestCase):
 
         self.assertTrue(manifest["config_flow"])
         self.assertEqual("cloud_polling", manifest["iot_class"])
-        self.assertEqual("0.2.5", manifest["version"])
+        self.assertEqual("0.3.0", manifest["version"])
         self.assertTrue((COMPONENT / "event.py").is_file())
         self.assertEqual(
             [
@@ -29,6 +29,7 @@ class StructureTest(unittest.TestCase):
                 (COMPONENT / "translations" / f"{language}.json").read_text()
             )
             self.assertIn("renew_loan", translation["services"])
+            self.assertIn("update_interval", translation["options"]["step"]["init"]["data"])
         self.assertIn("Apache License", (ROOT / "LICENSE").read_text())
         self.assertIn("Copyright 2026 BAERnado", (ROOT / "NOTICE").read_text())
 

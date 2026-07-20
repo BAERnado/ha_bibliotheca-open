@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
+from datetime import timedelta
 import logging
 
 from bibliotheca_open_client import AccountBalance, BibliothecaClient, Loan, RenewalResult
@@ -16,7 +17,8 @@ from .const import (
     CONF_BASE_URL,
     CONF_PASSWORD,
     CONF_USERNAME,
-    DEFAULT_UPDATE_INTERVAL,
+    CONF_UPDATE_INTERVAL,
+    DEFAULT_UPDATE_INTERVAL_MINUTES,
     DOMAIN,
 )
 
@@ -45,7 +47,11 @@ class BibliothecaCoordinator(DataUpdateCoordinator[AccountData]):
             _LOGGER,
             config_entry=entry,
             name=f"{DOMAIN}_{entry.entry_id}",
-            update_interval=DEFAULT_UPDATE_INTERVAL,
+            update_interval=timedelta(
+                minutes=entry.options.get(
+                    CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL_MINUTES
+                )
+            ),
             always_update=False,
         )
         self.entry = entry

@@ -28,6 +28,19 @@
       "already_configured": "This library account is already configured"
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Account update settings",
+        "data": {
+          "update_interval": "Update interval in minutes"
+        },
+        "data_description": {
+          "update_interval": "Use different intervals for accounts at the same library to spread their requests. Allowed range: 15 to 1440 minutes."
+        }
+      }
+    }
+  },
   "services": {
     "renew_loan": {
       "name": "Renew loan",

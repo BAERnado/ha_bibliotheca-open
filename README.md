@@ -7,7 +7,7 @@ HACS-installable Home Assistant custom integration for library accounts using
 
 - UI configuration with one config entry per library account
 - multiple people, accounts, and library installations
-- hourly polling with automatic login after an expired session
+- configurable polling per account, defaulting to 60 minutes
 - one date sensor per currently borrowed medium
 - aggregate loan and account-balance sensors
 - one due-date calendar per account
@@ -32,10 +32,17 @@ Each configured account needs:
   `kaltenkirchen.bibliotheca-open.de`, or just `kaltenkirchen`;
 - library card number and password.
 
-## Update behavior
+## Update behavior and polling interval
 
-The account is updated hourly and immediately after a renewal action. If its
-session expired, the integration logs in again with the stored credentials.
+The account defaults to an update every 60 minutes and is refreshed immediately
+after a renewal action. If its session expired, the integration logs in again
+with the stored credentials.
+
+Change the interval under **Settings → Devices & services → Bibliotheca Open →
+Configure**. Values from 15 to 1440 minutes are accepted. With several accounts
+at the same library, choose slightly different intervals, for example 57, 63,
+and 71 minutes. This spreads later polls; the initial setup check still runs
+immediately for each account.
 
 Returned media disappear from the current Home Assistant state. The integration
 does not maintain a second lending-history database; lifecycle events are kept
@@ -70,6 +77,7 @@ date. It provides these attributes:
 
 | Attribute | Meaning |
 | --- | --- |
+| `config_entry_id` | Account identifier used by renewal actions |
 | `copy_id` | Copy identifier required for renewal |
 | `author` | Author, if supplied by OPEN |
 | `media_group` | Media group such as book, game, or Tonie |
@@ -189,6 +197,99 @@ mode: single
 For unattended renewal, add conditions appropriate to your household. In
 particular, inspect the loan's `renewable` state or use the structured
 `due_soon` event before invoking a mutating action.
+
+## Automation: renew everything due tomorrow and report the result
+
+The following account-specific automation runs one day before a calendar due
+date. It collects every loan of that account due on the same date, renews those
+currently marked renewable, and sends one summary after all renewal calls
+succeed. Replace the calendar entity and config-entry ID.
+
+`mode: single` is intentional: when several all-day events start together, the
+first run handles every loan for that date while duplicate triggers are ignored.
+
+```yaml
+alias: "Library: renew loans due tomorrow"
+triggers:
+  - trigger: calendar.event_started
+    target:
+      entity_id: calendar.my_library_due_dates
+    options:
+      offset:
+        days: 1
+      offset_type: before
+variables:
+  account_config_entry_id: "HOME_ASSISTANT_CONFIG_ENTRY_ID"
+  target_due_date: "{{ (trigger.calendar_event.start|string)[:10] }}"
+  renewable_copy_ids: >-
+    {% set ns = namespace(items=[]) %}
+    {% for entity_id in integration_entities('bibliotheca_open') %}
+      {% if entity_id.startswith('sensor.')
+            and state_attr(entity_id, 'config_entry_id') == account_config_entry_id
+            and states(entity_id) == target_due_date
+            and state_attr(entity_id, 'renewable') is true %}
+        {% set ns.items = ns.items + [state_attr(entity_id, 'copy_id')] %}
+      {% endif %}
+    {% endfor %}
+    {{ ns.items }}
+  renewed_titles: >-
+    {% set ns = namespace(items=[]) %}
+    {% for entity_id in integration_entities('bibliotheca_open') %}
+      {% if entity_id.startswith('sensor.')
+            and state_attr(entity_id, 'config_entry_id') == account_config_entry_id
+            and states(entity_id) == target_due_date
+            and state_attr(entity_id, 'renewable') is true %}
+        {% set ns.items = ns.items + [state_attr(entity_id, 'friendly_name')] %}
+      {% endif %}
+    {% endfor %}
+    {{ ns.items }}
+  return_titles: >-
+    {% set ns = namespace(items=[]) %}
+    {% for entity_id in integration_entities('bibliotheca_open') %}
+      {% if entity_id.startswith('sensor.')
+            and state_attr(entity_id, 'config_entry_id') == account_config_entry_id
+            and states(entity_id) == target_due_date
+            and state_attr(entity_id, 'renewable') is false %}
+        {% set reason = state_attr(entity_id, 'renewal_reason') or 'no reason supplied' %}
+        {% set item = state_attr(entity_id, 'friendly_name') ~ ': ' ~ reason %}
+        {% set ns.items = ns.items + [item] %}
+      {% endif %}
+    {% endfor %}
+    {{ ns.items }}
+actions:
+  - repeat:
+      for_each: "{{ renewable_copy_ids }}"
+      sequence:
+        - action: bibliotheca_open.renew_loan
+          data:
+            config_entry_id: "{{ account_config_entry_id }}"
+            copy_id: "{{ repeat.item }}"
+  - action: notify.persistent_notification
+    data:
+      title: "Library renewal result"
+      message: >-
+        Renewed:
+        {% if renewed_titles %}
+        - {{ renewed_titles | join('\n- ') }}
+        {% else %}
+        - none
+        {% endif %}
+
+        Not renewed; check or return:
+        {% if return_titles %}
+        - {{ return_titles | join('\n- ') }}
+        {% else %}
+        - none
+        {% endif %}
+mode: single
+```
+
+The server only exposes `renewable` and a localized reason. A negative decision
+does not always mean that return is absolutely required: it can also be a
+temporary restriction caused by the library's renewal-date calculation. The
+notification therefore includes the original reason instead of guessing. If a
+renewal call fails unexpectedly, Home Assistant stops the sequence and records
+the failure in the automation trace rather than falsely reporting success.
 
 ## License
 

@@ -28,6 +28,19 @@
       "already_configured": "Dieses Bibliothekskonto ist bereits eingerichtet"
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Abrufeinstellungen des Kontos",
+        "data": {
+          "update_interval": "Aktualisierungsintervall in Minuten"
+        },
+        "data_description": {
+          "update_interval": "Für Konten derselben Bibliothek unterschiedliche Intervalle verwenden, um Abrufe zu verteilen. Erlaubt sind 15 bis 1440 Minuten."
+        }
+      }
+    }
+  },
   "services": {
     "renew_loan": {
       "name": "Medium verlängern",

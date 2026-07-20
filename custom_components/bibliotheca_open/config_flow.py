@@ -9,14 +9,19 @@ from bibliotheca_open_client import BibliothecaClient
 import voluptuous as vol
 
 from homeassistant import config_entries
-from homeassistant.config_entries import ConfigFlowResult
+from homeassistant.config_entries import ConfigEntry, ConfigFlowResult, OptionsFlowWithReload
+from homeassistant.core import callback
 
 from .const import (
     CONF_ACCOUNT_NAME,
     CONF_BASE_URL,
     CONF_PASSWORD,
+    CONF_UPDATE_INTERVAL,
     CONF_USERNAME,
+    DEFAULT_UPDATE_INTERVAL_MINUTES,
     DOMAIN,
+    MAX_UPDATE_INTERVAL_MINUTES,
+    MIN_UPDATE_INTERVAL_MINUTES,
 )
 from .url import normalize_base_url
 
@@ -25,6 +30,13 @@ class BibliothecaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Configure one library account."""
 
     VERSION = 1
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry: ConfigEntry) -> "BibliothecaOptionsFlow":
+        """Create account options."""
+
+        return BibliothecaOptionsFlow()
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -116,3 +128,33 @@ class BibliothecaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             data_schema=vol.Schema({vol.Required(CONF_PASSWORD): str}),
             errors=errors,
         )
+
+
+class BibliothecaOptionsFlow(OptionsFlowWithReload):
+    """Manage optional polling behavior."""
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Configure the polling interval."""
+
+        if user_input is not None:
+            return self.async_create_entry(data=user_input)
+
+        schema = vol.Schema(
+            {
+                vol.Required(
+                    CONF_UPDATE_INTERVAL,
+                    default=self.config_entry.options.get(
+                        CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL_MINUTES
+                    ),
+                ): vol.All(
+                    int,
+                    vol.Range(
+                        min=MIN_UPDATE_INTERVAL_MINUTES,
+                        max=MAX_UPDATE_INTERVAL_MINUTES,
+                    ),
+                )
+            }
+        )
+        return self.async_show_form(step_id="init", data_schema=schema)
