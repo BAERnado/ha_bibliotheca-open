@@ -17,7 +17,7 @@ HACS-installable Home Assistant custom integration for library accounts using
 ## Installation
 
 Until the first PyPI release, the integration installs the client directly
-from the pinned Git commit `d81cf1d`. Home Assistant therefore needs outbound
+from the pinned Git commit `0cde5ea`. Home Assistant therefore needs outbound
 access to GitHub while installing the dependency.
 
 Add this repository to HACS as a custom **Integration** repository, install it,
@@ -188,3 +188,8 @@ mode: single
 For unattended renewal, add conditions appropriate to your household. In
 particular, inspect the loan's `renewable` state or use the structured
 `due_soon` event before invoking a mutating action.
+
+## License
+
+Copyright 2026 BAERnado. Licensed under the
+[Apache License 2.0](LICENSE). See [NOTICE](NOTICE) for attribution information.
