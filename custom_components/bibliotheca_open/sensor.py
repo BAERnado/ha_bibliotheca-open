@@ -10,6 +10,7 @@ from bibliotheca_open_client import Loan
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .coordinator import AccountData, BibliothecaCoordinator
@@ -47,19 +48,43 @@ async def async_setup_entry(
     )
     loan_entities: dict[str, LoanSensor] = {}
 
+    async def remove_loan(entity: LoanSensor) -> None:
+        entity_id = entity.entity_id
+        await entity.async_remove()
+        if entity_id is not None:
+            er.async_get(hass).async_remove(entity_id)
+
     @callback
     def sync_loans() -> None:
         current = {loan.copy_id: loan for loan in coordinator.data.loans}
         removed = set(loan_entities) - set(current)
+        removing_entity_ids: set[str] = set()
         for copy_id in removed:
             entity = loan_entities.pop(copy_id)
-            hass.async_create_task(entity.async_remove())
+            if entity.entity_id is not None:
+                removing_entity_ids.add(entity.entity_id)
+            hass.async_create_task(remove_loan(entity))
         additions = [
             loan_entities.setdefault(copy_id, LoanSensor(coordinator, copy_id))
             for copy_id in current.keys() - loan_entities.keys()
         ]
         if additions:
             async_add_entities(additions)
+
+        registry = er.async_get(hass)
+        active_unique_ids = {
+            f"{entry.entry_id}_loan_{copy_id}" for copy_id in current
+        }
+        for registry_entry in er.async_entries_for_config_entry(
+            registry, entry.entry_id
+        ):
+            if (
+                registry_entry.unique_id.startswith(f"{entry.entry_id}_loan_")
+                and registry_entry.unique_id not in active_unique_ids
+                and registry_entry.entity_id not in removing_entity_ids
+            ):
+                hass.states.async_remove(registry_entry.entity_id)
+                registry.async_remove(registry_entry.entity_id)
 
     sync_loans()
     entry.async_on_unload(coordinator.async_add_listener(sync_loans))

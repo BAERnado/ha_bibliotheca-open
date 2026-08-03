@@ -91,6 +91,7 @@ class LoanActivityEvent(BibliothecaEntity, EventEntity):
             for event_type, attributes in events:
                 attributes["config_entry_id"] = self.coordinator.entry.entry_id
                 self._trigger_event(event_type, attributes)
+                self.async_write_ha_state()
 
             self._known = current
             await self._store.async_save(current)

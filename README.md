@@ -47,11 +47,12 @@ immediately for each account.
 The same options dialog controls when `due_soon` is emitted. Its lead time
 defaults to 3 days and accepts values from 0 (on the due date) through 14 days.
 
-Returned media disappear from the current Home Assistant state. The integration
-does not maintain a second lending-history database; lifecycle events are kept
-according to the Home Assistant Recorder retention settings. A detected return
-time means that an update first noticed the missing loan. It can therefore be
-up to one polling interval later than the actual return.
+Returned media are removed from the current Home Assistant state and entity
+registry. Their historical states remain subject to the Home Assistant Recorder
+retention settings. The integration does not maintain a second lending-history
+database. A detected return time means that an update first noticed the missing
+loan. It can therefore be up to one polling interval later than the actual
+return.
 
 ## Device and entities
 
@@ -132,6 +133,26 @@ after a successful renewal that loan can be included again when its new date
 enters the configured window. The stored activity snapshot survives Home
 Assistant restarts. The first snapshot does not create artificial `borrowed`
 events, but it does report loans already due soon.
+
+Use Home Assistant's **Event received** trigger for a specific activity type:
+
+```yaml
+alias: "Library: notify when a loan is returned"
+triggers:
+  - trigger: event.received
+    target:
+      entity_id: event.my_library_loan_activity
+    options:
+      event_type:
+        - returned
+actions:
+  - action: notify.send_message
+    target:
+      entity_id: notify.my_notification_entity
+    data:
+      message: "A library loan was returned."
+mode: queued
+```
 
 ## Action: renew a loan
 
