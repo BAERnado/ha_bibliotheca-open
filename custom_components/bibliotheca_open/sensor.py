@@ -79,7 +79,8 @@ async def async_setup_entry(
             registry, entry.entry_id
         ):
             if (
-                registry_entry.unique_id.startswith(f"{entry.entry_id}_loan_")
+                registry_entry.domain == "sensor"
+                and registry_entry.unique_id.startswith(f"{entry.entry_id}_loan_")
                 and registry_entry.unique_id not in active_unique_ids
                 and registry_entry.entity_id not in removing_entity_ids
             ):
