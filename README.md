@@ -235,15 +235,16 @@ does not need to scan integration entities.
 ```yaml
 alias: "Library: renew loans due tomorrow"
 triggers:
-  - trigger: state
-    entity_id: event.my_library_loan_activity
-conditions:
-  - condition: template
-    value_template: "{{ trigger.to_state.attributes.event_type == 'due_soon' }}"
+  - trigger: event.received
+    target:
+      entity_id: event.my_library_loan_activity
+    options:
+      event_type:
+        - due_soon
 variables:
   account_config_entry_id: "{{ trigger.to_state.attributes.config_entry_id }}"
-  renewable_loans: "{{ trigger.to_state.attributes.renewable_loans }}"
-  nonrenewable_loans: "{{ trigger.to_state.attributes.nonrenewable_loans }}"
+  renewable_loans: "{{ trigger.to_state.attributes.get('renewable_loans', []) }}"
+  nonrenewable_loans: "{{ trigger.to_state.attributes.get('nonrenewable_loans', []) }}"
 actions:
   - repeat:
       for_each: "{{ renewable_loans }}"

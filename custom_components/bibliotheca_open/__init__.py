@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry
@@ -13,6 +15,7 @@ from .const import ATTR_CONFIG_ENTRY_ID, ATTR_COPY_ID, DOMAIN, PLATFORMS, SERVIC
 from .coordinator import BibliothecaCoordinator, create_client
 
 BibliothecaConfigEntry = ConfigEntry[BibliothecaCoordinator]
+_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
@@ -25,7 +28,9 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
         try:
             await entry.runtime_data.async_renew_loan(call.data[ATTR_COPY_ID])
         except Exception as error:
-            raise HomeAssistantError(str(error)) from error
+            _LOGGER.exception("Loan renewal failed")
+            detail = str(error) or type(error).__name__
+            raise HomeAssistantError(f"Loan renewal failed: {detail}") from error
 
     hass.services.async_register(
         DOMAIN,

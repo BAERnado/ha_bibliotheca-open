@@ -86,6 +86,8 @@ class BibliothecaCoordinator(DataUpdateCoordinator[AccountData]):
             if not login.authenticated:
                 raise ConfigEntryAuthFailed("Library credentials were rejected")
             result = await self.client.async_renew_loan(copy_id)
+            if not result.renewed:
+                raise RuntimeError(result.message or "Library rejected the renewal")
         await self.async_request_refresh()
         return result
 

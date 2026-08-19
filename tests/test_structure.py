@@ -15,7 +15,7 @@ class StructureTest(unittest.TestCase):
 
         self.assertTrue(manifest["config_flow"])
         self.assertEqual("cloud_polling", manifest["iot_class"])
-        self.assertEqual("0.4.2", manifest["version"])
+        self.assertEqual("0.4.3", manifest["version"])
         self.assertTrue((COMPONENT / "event.py").is_file())
         self.assertEqual(
             [
@@ -42,6 +42,13 @@ class StructureTest(unittest.TestCase):
         self.assertIn("er.async_get(hass).async_remove(entity_id)", sensor_source)
         self.assertIn("er.async_entries_for_config_entry", sensor_source)
         self.assertIn('registry_entry.domain == "sensor"', sensor_source)
+
+    def test_rejected_renewals_are_reported(self) -> None:
+        setup_source = (COMPONENT / "__init__.py").read_text()
+        coordinator_source = (COMPONENT / "coordinator.py").read_text()
+
+        self.assertIn('_LOGGER.exception("Loan renewal failed")', setup_source)
+        self.assertIn("if not result.renewed:", coordinator_source)
 
 
 if __name__ == "__main__":
