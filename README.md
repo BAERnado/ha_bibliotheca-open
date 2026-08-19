@@ -250,6 +250,7 @@ actions:
       for_each: "{{ renewable_loans }}"
       sequence:
         - action: bibliotheca_open.renew_loan
+          continue_on_error: true
           data:
             config_entry_id: "{{ account_config_entry_id }}"
             copy_id: "{{ repeat.item.copy_id }}"
@@ -257,7 +258,7 @@ actions:
     data:
       title: "Library renewal result"
       message: >-
-        Renewed:
+        Renewal requested:
         {% if renewable_loans %}
         {% for loan in renewable_loans %}- {{ loan.title }}
         {% endfor %}
@@ -272,15 +273,17 @@ actions:
         {% else %}
         - none
         {% endif %}
-mode: single
+mode: queued
+max: 20
 ```
 
 The server only exposes `renewable` and a localized reason. A negative decision
 does not always mean that return is absolutely required: it can also be a
 temporary restriction caused by the library's renewal-date calculation. The
-notification therefore includes the original reason instead of guessing. If a
-renewal call fails unexpectedly, Home Assistant stops the sequence and records
-the failure in the automation trace rather than falsely reporting success.
+notification therefore includes the original reason instead of guessing. A
+failed renewal is recorded in the automation trace, while `continue_on_error`
+allows the remaining loans to be attempted. The summary deliberately says
+"requested" rather than claiming that every attempted renewal succeeded.
 
 ## License
 
