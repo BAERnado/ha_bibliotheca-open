@@ -17,7 +17,7 @@ HACS-installable Home Assistant custom integration for library accounts using
 ## Installation
 
 Until the first PyPI release, the integration installs the client directly
-from the pinned Git commit `2c970aa`. Home Assistant therefore needs outbound
+from the pinned Git commit `53df917`. Home Assistant therefore needs outbound
 access to GitHub while installing the dependency.
 
 Add this repository to HACS as a custom **Integration** repository, install it,
