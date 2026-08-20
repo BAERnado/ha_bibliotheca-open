@@ -1,7 +1,7 @@
 """Constants for the Bibliotheca Open integration."""
 
 DOMAIN = "bibliotheca_open"
-PLATFORMS = ["calendar", "event", "sensor"]
+PLATFORMS = ["button", "calendar", "event", "sensor"]
 DEFAULT_UPDATE_INTERVAL_MINUTES = 60
 MIN_UPDATE_INTERVAL_MINUTES = 15
 MAX_UPDATE_INTERVAL_MINUTES = 1440

@@ -15,7 +15,8 @@ class StructureTest(unittest.TestCase):
 
         self.assertTrue(manifest["config_flow"])
         self.assertEqual("cloud_polling", manifest["iot_class"])
-        self.assertEqual("0.4.4", manifest["version"])
+        self.assertEqual("0.5.0", manifest["version"])
+        self.assertTrue((COMPONENT / "button.py").is_file())
         self.assertTrue((COMPONENT / "event.py").is_file())
         self.assertEqual(
             [
@@ -49,6 +50,13 @@ class StructureTest(unittest.TestCase):
 
         self.assertIn('_LOGGER.exception("Loan renewal failed")', setup_source)
         self.assertIn("if not result.renewed:", coordinator_source)
+
+    def test_renewal_button_is_guarded_and_cleans_up(self) -> None:
+        button_source = (COMPONENT / "button.py").read_text()
+
+        self.assertIn("and loan.renewal.renewable", button_source)
+        self.assertIn("await self.coordinator.async_renew_loan", button_source)
+        self.assertIn('registry_entry.domain == "button"', button_source)
 
 
 if __name__ == "__main__":

@@ -9,6 +9,7 @@ HACS-installable Home Assistant custom integration for library accounts using
 - multiple people, accounts, and library installations
 - configurable polling and due-soon lead time per account
 - one date sensor per currently borrowed medium
+- one renewal button per currently borrowed medium
 - aggregate loan and account-balance sensors
 - one due-date calendar per account
 - persisted loan lifecycle events
@@ -101,6 +102,29 @@ after renaming or area changes:
     {{ entity_id }}: renewable={{ state_attr(entity_id, 'renewable') }}
   {% endif %}
 {% endfor %}
+```
+
+### Loan renewal buttons
+
+Every active loan also has a **Renew _title_** button. Pressing it immediately
+requests renewal for that copy and refreshes the account. The button is only
+available while OPEN currently reports the loan as renewable; its attributes
+contain `copy_id` and a possible `renewal_reason`. It is removed together with
+the loan sensor after the medium is returned.
+
+There is no confirmation step on the library website. Add a confirmation when
+placing a renewal button on a dashboard:
+
+```yaml
+type: button
+entity: button.my_library_renew_example_title
+tap_action:
+  action: perform-action
+  perform_action: button.press
+  target:
+    entity_id: button.my_library_renew_example_title
+  confirmation:
+    text: "Really renew this loan?"
 ```
 
 ### Due-date calendar
