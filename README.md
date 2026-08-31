@@ -284,7 +284,10 @@ actions:
       message: >-
         Renewal requested:
         {% if renewable_loans %}
-        {% for loan in renewable_loans %}- {{ loan.title }}
+        {% for loan in renewable_loans %}
+        {% if loan is mapping %}- {{ loan.get('title', loan.get('copy_id', 'unknown loan')) }}
+        {% else %}- {{ loan }}
+        {% endif %}
         {% endfor %}
         {% else %}
         - none
@@ -292,7 +295,10 @@ actions:
 
         Not renewed; check or return:
         {% if nonrenewable_loans %}
-        {% for loan in nonrenewable_loans %}- {{ loan.title }}: {{ loan.reason or 'no reason supplied' }}
+        {% for loan in nonrenewable_loans %}
+        {% if loan is mapping %}- {{ loan.get('title', loan.get('copy_id', 'unknown loan')) }}: {{ loan.get('reason') or 'no reason supplied' }}
+        {% else %}- {{ loan }}
+        {% endif %}
         {% endfor %}
         {% else %}
         - none
