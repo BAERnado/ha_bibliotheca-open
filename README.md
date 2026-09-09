@@ -265,23 +265,23 @@ triggers:
     options:
       event_type:
         - due_soon
-variables:
-  account_config_entry_id: "{{ trigger.to_state.attributes.config_entry_id }}"
-  renewable_loans: "{{ trigger.to_state.attributes.get('renewable_loans', []) }}"
-  nonrenewable_loans: "{{ trigger.to_state.attributes.get('nonrenewable_loans', []) }}"
 actions:
   - repeat:
-      for_each: "{{ renewable_loans }}"
+      for_each: >-
+        {{ trigger.to_state.attributes.get('renewable_loans', []) }}
       sequence:
         - action: bibliotheca_open.renew_loan
           continue_on_error: true
           data:
-            config_entry_id: "{{ account_config_entry_id }}"
-            copy_id: "{{ repeat.item.copy_id }}"
+            config_entry_id: >-
+              {{ trigger.to_state.attributes.config_entry_id }}
+            copy_id: "{{ repeat.item.get('copy_id') }}"
   - action: notify.persistent_notification
     data:
       title: "Library renewal result"
-      message: >-
+      message: |-
+        {% set renewable_loans = trigger.to_state.attributes.get('renewable_loans', []) %}
+        {% set nonrenewable_loans = trigger.to_state.attributes.get('nonrenewable_loans', []) %}
         Renewal requested:
         {% if renewable_loans %}
         {% for loan in renewable_loans %}
