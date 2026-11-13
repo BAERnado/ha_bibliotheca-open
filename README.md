@@ -1,6 +1,7 @@
 # Bibliotheca Open for Home Assistant
 
-HACS-installable Home Assistant custom integration for library accounts using
+Home Assistant custom integration, installable through the Marketplace
+(formerly HACS), for library accounts using
 [bibliotheca-open.de](https://bibliotheca-open.de/).
 
 ## Features
@@ -21,9 +22,16 @@ Until the first PyPI release, the integration installs the client directly
 from the pinned Git commit `53df917`. Home Assistant therefore needs outbound
 access to GitHub while installing the dependency.
 
-Add this repository to HACS as a custom **Integration** repository, install it,
-and restart Home Assistant. Then add **Bibliotheca Open** through
-**Settings → Devices & services**.
+Since Home Assistant 2026.11, HACS is built in as the **Marketplace**. Add
+this repository there as a custom **Integration** repository, install it, and
+restart Home Assistant. Then add **Bibliotheca Open** through
+**Settings → Devices & services**. Existing HACS installations are migrated
+automatically and keep receiving updates.
+
+Versions are published as GitHub releases whose tag matches the `version` in
+`manifest.json`, so the Marketplace shows version numbers instead of commit
+hashes. A repository added by link is checked for updates periodically, so a
+new release can take a while to appear.
 
 Each configured account needs:
 
