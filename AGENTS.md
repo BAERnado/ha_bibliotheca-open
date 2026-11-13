@@ -19,8 +19,9 @@ works.
 
 ## Repository purpose
 
-This repository contains the HACS-installable Home Assistant custom component
-for bibliotheca-open.de accounts. It supports multiple people, multiple library
+This repository contains the Home Assistant custom component for
+bibliotheca-open.de accounts, installable through the Home Assistant
+Marketplace (built in since 2026.11, formerly HACS). It supports multiple people, multiple library
 accounts per person, and libraries other than the currently known Kaltenkirchen
 installation.
 
@@ -43,8 +44,12 @@ duplicate scraper behavior here.
 - Keep blocking network and parser work outside Home Assistant's event loop.
 - Treat credentials, account identifiers, borrowed-item data, and server
   responses as sensitive; never include them unredacted in logs.
-- Keep the component installable through HACS and declare runtime dependencies
-  in `custom_components/bibliotheca_open/manifest.json` only when needed.
+- Keep the component installable through the Marketplace (`hacs.json` stays
+  the repository descriptor) and declare runtime dependencies in
+  `custom_components/bibliotheca_open/manifest.json` only when needed.
+- The Marketplace offers GitHub releases, not commits. User-facing changes need
+  a `version` bump in `manifest.json` and a release whose tag equals that
+  version exactly (no `v` prefix).
 - The client is a library dependency, not a dedicated service or daemon.
 
 ## Environment and delivery
