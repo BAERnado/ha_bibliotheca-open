@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import date
 from typing import Any
 
 from homeassistant.components.event import EventEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.util import dt as dt_util
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.storage import Store
 
@@ -83,7 +83,7 @@ class LoanActivityEvent(BibliothecaEntity, EventEntity):
             events, current = activity_events(
                 previous,
                 current,
-                date.today(),
+                dt_util.now().date(),
                 self.coordinator.entry.options.get(
                     CONF_DUE_SOON_DAYS, DEFAULT_DUE_SOON_DAYS
                 ),

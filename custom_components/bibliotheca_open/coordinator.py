@@ -52,7 +52,11 @@ class BibliothecaCoordinator(DataUpdateCoordinator[AccountData]):
                     CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL_MINUTES
                 )
             ),
-            always_update=False,
+            # ponytail: notify listeners on every poll, even with unchanged
+            # data, because due_soon depends on the date passing. Ceiling: the
+            # event is up to one polling interval late; a midnight timer in
+            # event.py would remove that delay.
+            always_update=True,
         )
         self.entry = entry
         self.client = client

@@ -15,7 +15,11 @@ class StructureTest(unittest.TestCase):
 
         self.assertTrue(manifest["config_flow"])
         self.assertEqual("cloud_polling", manifest["iot_class"])
-        self.assertEqual("0.5.0", manifest["version"])
+        self.assertEqual("0.5.1", manifest["version"])
+        # due_soon is date-driven; unchanged account data must still notify.
+        self.assertNotIn(
+            "always_update=False", (COMPONENT / "coordinator.py").read_text()
+        )
         self.assertTrue((COMPONENT / "button.py").is_file())
         self.assertTrue((COMPONENT / "event.py").is_file())
         self.assertEqual(

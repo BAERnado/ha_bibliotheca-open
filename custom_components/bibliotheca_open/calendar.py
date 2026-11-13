@@ -7,6 +7,7 @@ from datetime import date, datetime, timedelta
 from homeassistant.components.calendar import CalendarEntity, CalendarEvent
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .coordinator import BibliothecaCoordinator
@@ -53,7 +54,7 @@ class BibliothecaCalendar(BibliothecaEntity, CalendarEntity):
 
     @property
     def event(self) -> CalendarEvent | None:
-        today = date.today()
+        today = dt_util.now().date()
         return next((event for event in self._events() if event.end > today), None)
 
     async def async_get_events(
